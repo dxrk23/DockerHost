@@ -1,0 +1,41 @@
+version: '3.4'
+
+services:
+  basketdb:
+    image: redis
+    container_name: basketdb
+    restart: always
+    ports:
+       - "6379:6379"
+  basket.api:
+    image: ${DOCKER_REGISTRY-}basketapi
+    container_name: basketapi
+    environment:
+       - ASPNETCORE_ENVIRONMENT=Development
+       - "ConnectionStrings:Redis=basketdb:6379"
+    build:
+      context: .
+      dockerfile: BasketMicroservice/Dockerfile
+    depends_on:
+       - basketdb
+    ports:
+       - "8081:80"
+  catalogdb:
+    image: mongo
+    container_name: catalogdb
+    restart: always
+    ports:
+       - "27017:27017"
+  catalog.api:
+    image: ${DOCKER_REGISTRY-}catalogapi
+    container_name: catalogapi
+    environment:
+       - ASPNETCORE_ENVIRONMENT=Development
+       - "CatalogDatabaseSettings:ConnectionString=mongodb://catalogdb:27017"
+    build:
+      context: .
+      dockerfile: Catalog.API/Dockerfile
+    depends_on: 
+       - catalogdb
+    ports:
+       - "8080:80"
